@@ -191,7 +191,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .match-card:last-child{margin-bottom:0}
 .match-card:hover{border-color:#e53935}
 .match-card.is-live{border-color:rgba(229,57,53,.5);box-shadow:0 0 0 1px rgba(229,57,53,.12)}
-.match-card a{text-decoration:none;color:#fff;display:block}
+/* <a> only wraps .match-row now — .match-meta is a sibling so watch-btn works */
+.match-card>a{text-decoration:none;color:#fff;display:block}
+.match-card>a:hover{background:rgba(255,255,255,.02)}
 .match-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}
 .match-card .team{display:flex;flex-direction:column;align-items:center;gap:6px;width:90px;text-align:center}
 .match-card .tlogo{width:54px;height:54px;object-fit:contain;border-radius:50%;background:#1a1a1a;padding:4px}
@@ -1154,11 +1156,11 @@ ${homeBlock}
         </div>
 ${awayBlock}
       </div>
-      <div class="match-meta">
-        <div class="meta-tag">${esc(leagueMeta)}</div>
-        <div class="meta-tag" id="${ktId}">${timeLabel}</div>${watchBtn}
-      </div>
     </a>
+    <div class="match-meta">
+      <div class="meta-tag">${esc(leagueMeta)}</div>
+      <div class="meta-tag" id="${ktId}">${timeLabel}</div>${watchBtn}
+    </div>
   </div>\n`;
 
     const prevAway=m.isRacing
@@ -1173,12 +1175,12 @@ ${awayBlock}
           <div class="mc"><div class="score">${esc(score)}</div><div class="badge ${st}">${esc(lbl)}</div><div class="cd"></div></div>
           ${prevAway}
         </div>
-        <div class="match-meta">
-          <div class="meta-tag">${esc(leagueMeta)}</div>
-          <div class="meta-tag" id="${ktId}-prev">${timeLabel}</div>
-          ${prevWatchBtn}
-        </div>
       </a>
+      <div class="match-meta">
+        <div class="meta-tag">${esc(leagueMeta)}</div>
+        <div class="meta-tag" id="${ktId}-prev">${timeLabel}</div>
+        ${prevWatchBtn}
+      </div>
     </div>`;
   });
 
@@ -1245,7 +1247,8 @@ return `/* Sports 803 Match Cards v3 */
 .match-card:last-child{margin-bottom:0}
 .match-card:hover{border-color:#e53935}
 .match-card.is-live{border-color:rgba(229,57,53,.5);box-shadow:0 0 0 1px rgba(229,57,53,.12)}
-.match-card a{text-decoration:none;color:#fff;display:block}
+.match-card>a{text-decoration:none;color:#fff;display:block}
+.match-card>a:hover{background:rgba(255,255,255,.02)}
 .match-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}
 .match-card .team{display:flex;flex-direction:column;align-items:center;gap:6px;width:90px;text-align:center}
 .match-card .tlogo{width:54px;height:54px;object-fit:contain;border-radius:50%;background:#1a1a1a;padding:4px}
