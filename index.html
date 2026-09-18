@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Sports 803 · Match Card Generator v4</title>
+<title>Sports 803 · Match Card Generator v5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -62,6 +62,12 @@ input:focus,select:focus{border-color:var(--red)}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .cfg-row{display:flex;flex-direction:column;gap:4px}
 .cfg-hint{font-size:10px;color:var(--txt3);line-height:1.4}
+.switch-row{display:flex;align-items:center;gap:8px;padding:6px 9px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;cursor:pointer}
+.switch-row span{font-size:11px;color:var(--txt2);flex:1}
+.switch{width:32px;height:18px;border-radius:20px;background:var(--surface3);border:1px solid var(--border2);position:relative;flex-shrink:0;transition:all .15s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--txt3);transition:all .15s}
+.switch.on{background:var(--green-dim);border-color:var(--green-border)}
+.switch.on::after{left:16px;background:var(--green)}
 .btn{width:100%;padding:8px;border-radius:8px;font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;border:none;transition:all .13s;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--red);color:#fff;box-shadow:0 0 16px rgba(229,57,53,.18)}
 .btn-primary:hover{background:#c62828}
@@ -80,8 +86,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .main{padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;overflow:hidden}
 .main-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .main-hdr h2{font-family:var(--font-display);font-size:22px;letter-spacing:2px}
-.hdr-actions{display:flex;gap:6px;align-items:center}
+.hdr-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .count-pill{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);font-family:var(--font-head);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+.count-pill.green{background:var(--green-dim);border-color:var(--green-border);color:#81c784}
 .events-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .events-empty{padding:40px;text-align:center;color:var(--txt3);font-size:13px}
 .events-empty span{display:block;font-size:28px;margin-bottom:8px}
@@ -96,6 +103,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .event-item:last-child{border-bottom:none}
 .event-item:hover{background:var(--surface2)}
 .event-item.selected{background:rgba(229,57,53,.04);border-left:3px solid var(--red)}
+.event-item.published{background:rgba(67,160,71,.035)}
 .ev-chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .event-item.selected .ev-chk{background:var(--red);border-color:var(--red)}
 .ev-chk svg{width:8px;height:8px;display:none}
@@ -108,12 +116,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .ev-meta{font-size:10px;color:var(--txt2);display:flex;gap:5px;margin-top:2px;flex-wrap:wrap;align-items:center}
 .ev-league{color:var(--red);font-weight:600}
 
-/* Broadcast source badges */
+/* Source badges */
 .src-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700;font-family:var(--font-head);letter-spacing:.3px;white-space:nowrap}
 .src-badge.espn{background:rgba(255,60,0,.12);border:1px solid rgba(255,60,0,.3);color:#ff8a65}
 .src-badge.sofa{background:var(--blue-dim);border:1px solid var(--blue-border);color:#64b5f6}
 .src-badge.kw{background:var(--purple-dim);border:1px solid var(--purple-border);color:#ce93d8}
 .src-badge.matched{background:var(--green-dim);border:1px solid var(--green-border);color:#81c784}
+.src-badge.live-site{background:var(--teal-dim);border:1px solid var(--teal-border);color:#4dd0e1}
 .src-badge.none{background:var(--surface3);border:1px solid var(--border2);color:var(--txt3)}
 
 .ev-time-col{text-align:right;flex-shrink:0}
@@ -123,9 +132,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .ev-status.ended{background:var(--surface3);color:var(--txt3);border:1px solid var(--border2)}
 .ev-status.upcoming{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
 
-/* Broadcast inspector panel */
-.broadcast-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.bp-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)}
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.bp-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .bp-hdr h3{font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--txt2);text-transform:uppercase;flex:1}
 .bp-stats{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .bp-stat{display:flex;flex-direction:column;gap:2px;min-width:80px}
@@ -134,17 +143,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
 .bp-stat-val.green{color:var(--green)}
 .bp-stat-val.blue{color:#64b5f6}
 .bp-stat-val.orange{color:#ffb74d}
+.bp-stat-val.teal{color:#4dd0e1}
 .bp-stat-lbl{font-size:9px;color:var(--txt3);font-family:var(--font-head);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
-.bp-rows{max-height:260px;overflow-y:auto}
+.bp-rows{max-height:300px;overflow-y:auto}
 .bp-row{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--border);font-size:11px}
 .bp-row:last-child{border-bottom:none}
 .bp-row:hover{background:var(--surface2)}
 .bp-match{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
 .bp-match strong{color:var(--txt);font-weight:600}
-.bp-broadcasters{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0}
+.bp-broadcasters{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;align-items:center}
 .bp-ch-name{font-size:10px;font-family:var(--font-head);font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
 .bp-ch-name.matched{background:var(--green-dim);border:1px solid var(--green-border);color:#81c784}
 .bp-ch-name.raw{background:var(--surface3);border:1px solid var(--border2);color:var(--txt3)}
+.mini-btn{font-family:var(--font-head);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--surface3);border:1px solid var(--border2);color:var(--txt2);cursor:pointer;white-space:nowrap;transition:all .13s}
+.mini-btn:hover{border-color:var(--red);color:#ef9a9a}
+.mini-btn.ok:hover{border-color:var(--green-border);color:#81c784}
 
 /* Stream editor */
 .stream-editor{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:9px}
@@ -224,12 +237,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     <div class="logo-badge">803</div>
     <div>
       <div class="logo-text">SPORTS <span>803</span></div>
-      <div class="logo-sub">Card Generator v4</div>
+      <div class="logo-sub">Card Generator v5</div>
     </div>
   </div>
   <div class="info-badge blue"><div class="badge-dot"></div><span>TZ: <strong id="tzName">detecting…</strong></span></div>
   <div class="info-badge orange" id="fbBadge"><div class="badge-dot pulse"></div><span id="fbStatus">Firebase connecting…</span></div>
   <div class="info-badge purple" id="chBadge" style="display:none"><div class="badge-dot"></div><span id="chText">0 channels</span></div>
+  <div class="info-badge teal" id="pubBadge" style="display:none"><div class="badge-dot"></div><span id="pubText">0 live on site</span></div>
   <div class="divider"></div>
   <div><div class="sec-label">Date</div>
     <div class="date-tabs">
@@ -264,13 +278,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
       <option value="sofa">SofaScore only</option>
       <option value="none">Keyword matching only</option>
     </select>
-    <div class="cfg-hint">ESPN is in your existing API calls. SofaScore adds deeper broadcast coverage for football.</div>
   </div>
   <button class="btn btn-primary" onclick="fetchMatches()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     Fetch Matches
   </button>
-  <div class="status-bar" id="statusBar"><div class="dot"></div>Ready — select date &amp; fetch</div>
+  <div class="status-bar" id="statusBar"><div class="dot"></div>Ready — pick a date and fetch</div>
   <div class="divider"></div>
   <div class="cfg-row">
     <div class="sec-label">Blog Base URL</div>
@@ -279,41 +292,63 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <div class="cfg-row">
     <div class="sec-label">Firebase DB URL</div>
     <input type="text" id="fbUrl" value="https://sports-803-1b806-default-rtdb.firebaseio.com"/>
-    <div class="cfg-hint">Reads <code style="font-size:10px;color:#ffd700">livetv/channels</code> and writes to <code style="font-size:10px;color:#ffd700">match_events</code></div>
   </div>
-  <button class="btn btn-primary" onclick="publishToFirebase()" style="margin-top:2px">
+  <div class="cfg-row">
+    <div class="sec-label">Site ID (optional)</div>
+    <input type="text" id="siteId" placeholder="leave blank for root"/>
+    <div class="cfg-hint">Namespaces every path, e.g. <code style="font-size:10px;color:#ffd700">sport803/match_events</code>. Must match the SITE_ID in your theme widget.</div>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" onclick="publishToFirebase()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    🚀 Publish to Site
+    Publish selected
   </button>
-  <button class="btn btn-secondary" style="margin-top:4px" onclick="loadFromFirebase()">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    🔄 Load from Site
+  <button class="btn btn-secondary" onclick="syncPublished()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Sync scores now
   </button>
-  <button class="btn btn-secondary" style="margin-top:4px" onclick="generateCards()">
+  <div class="switch-row" onclick="toggleAutoSync()">
+    <span>Auto-sync every 60s</span>
+    <div class="switch" id="autoSyncSwitch"></div>
+  </div>
+  <button class="btn btn-secondary" onclick="generateCards()">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-    Generate Cards (Backup)
+    Static HTML (backup)
   </button>
 </aside>
 
 <main class="main">
+  <!-- LIVE ON SITE -->
+  <div class="panel" id="pubPanel" style="display:none">
+    <div class="bp-hdr">
+      <h3>📡 Live on site</h3>
+      <button class="mini-btn ok" onclick="syncPublished()">Sync scores</button>
+      <button class="mini-btn" onclick="purgeEnded()">Remove finished</button>
+      <button class="mini-btn" onclick="clearAllPublished()">Remove all</button>
+    </div>
+    <div class="bp-stats" id="pubStats"></div>
+    <div class="bp-rows" id="pubRows"></div>
+  </div>
+
   <div class="main-hdr">
     <h2>MATCH EVENTS</h2>
     <div class="hdr-actions">
       <span class="count-pill" id="selCount">0 selected</span>
-      <button class="btn btn-secondary btn-sm" onclick="toggleAll()" id="selAllBtn">Select All</button>
+      <button class="btn btn-secondary btn-sm" onclick="selectUnpublished()">Select unpublished</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleAll()" id="selAllBtn">Select all</button>
     </div>
   </div>
   <div class="events-wrap" id="eventsArea">
     <div class="events-empty">
-      <span>📅</span>Select a date and click <strong>Fetch Matches</strong>
-      <small>ESPN broadcast data extracted automatically • SofaScore as fallback • Firebase channel matching</small>
+      <span>📅</span>Pick a date and choose <strong>Fetch matches</strong>
+      <small>Selected matches are pushed to Firebase — your theme renders the cards from there</small>
     </div>
   </div>
 
-  <!-- Broadcast Inspector -->
-  <div class="broadcast-panel" id="bcastPanel" style="display:none">
+  <!-- Broadcast inspector -->
+  <div class="panel" id="bcastPanel" style="display:none">
     <div class="bp-hdr">
-      <h3>📡 Broadcast Data Inspector</h3>
+      <h3>📺 Broadcast data</h3>
       <span style="font-size:10px;color:var(--txt3)" id="bcastHdrSub"></span>
     </div>
     <div class="bp-stats" id="bcastStats"></div>
@@ -323,11 +358,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
   <!-- Channel override editor -->
   <div class="stream-editor" id="streamEditor" style="display:none">
     <div class="stream-hdr">
-      <h3>🔗 URL &amp; Channel Assignment</h3>
+      <h3>🔗 Post URL &amp; watch channel</h3>
       <span style="font-size:11px;color:var(--txt3)" id="streamCount"></span>
     </div>
     <div class="cfg-hint" style="margin-bottom:2px">
-      🟠 ESPN source · 🔵 SofaScore · 🟣 Keyword match · ✅ = currently selected
+      🟠 ESPN · 🔵 SofaScore · 🟣 Keyword · ✅ currently assigned
     </div>
     <div id="streamInputs"></div>
   </div>
@@ -342,8 +377,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
     </div>
     <div class="out-panel active" id="tab-preview"><div class="preview-wrap s803w" id="cardPreview"></div></div>
     <div class="out-panel" id="tab-code">
-      <div class="copy-bar"><button class="copy-btn" onclick="copyEl('cardHtmlOut',this,'📋 Copy HTML')">📋 Copy Card HTML</button></div>
-      <div class="code-lbl">Paste into Blogger post (HTML mode):</div>
+      <div class="copy-bar"><button class="copy-btn" onclick="copyEl('cardHtmlOut',this,'📋 Copy HTML')">📋 Copy card HTML</button></div>
+      <div class="code-lbl">Only needed if you are pasting a card by hand:</div>
       <div class="code-blk" id="cardHtmlOut"></div>
     </div>
     <div class="out-panel" id="tab-css">
@@ -352,31 +387,29 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4)}
       <div class="code-blk" id="cssOut"></div>
     </div>
     <div class="out-panel" id="tab-script">
-      <div class="copy-bar"><button class="copy-btn" onclick="copyEl('scriptOut',this,'⚡ Copy Script')">⚡ Copy Script</button></div>
+      <div class="copy-bar"><button class="copy-btn" onclick="copyEl('scriptOut',this,'⚡ Copy Script')">⚡ Copy script</button></div>
       <div class="code-lbl">Add once before <code>&lt;/body&gt;</code>:</div>
       <div class="code-blk" id="scriptOut"></div>
     </div>
     <div class="out-panel" id="tab-guide">
       <div class="guide">
-        <div class="guide-step"><h4>How Broadcast Matching Works (3-layer)</h4>
-          <p><strong>Layer 1 — ESPN API</strong>: Already in your API calls, the <code>competitions[0].broadcasts[].names</code> field returns official broadcaster names like <code>"Sky Sports Main Event"</code>, <code>"NBC"</code>, <code>"ESPN+"</code>. Free, no extra calls.</p>
-          <p style="margin-top:6px"><strong>Layer 2 — SofaScore</strong>: If ESPN has no broadcast data, fetches <code>api.sofascore.com/api/v1/event/{id}/tvs</code>. Broader football coverage. Unofficial but widely stable.</p>
-          <p style="margin-top:6px"><strong>Layer 3 — Keyword scoring</strong>: Falls back to scoring your Firebase channel names against sport/league/team keywords.</p>
+        <div class="guide-step"><h4>The workflow now</h4>
+          <p>Fetch → select → <strong>Publish selected</strong>. The matches land in Firebase under <code>match_events/{id}</code> and the feed widget in your theme draws the cards. You never paste card HTML again.</p>
         </div>
-        <div class="guide-step"><h4>Channel Name Normalization</h4>
-          <p>The normalizer converts <code>"Sky Sports Main Event"</code> → <code>"sky sports main event"</code>, strips punctuation, then fuzzy-matches against your Firebase channel names using token overlap scoring. So <code>"Sky Sports ME"</code>, <code>"SS Main Event"</code>, <code>"SkySports1"</code> all map correctly.</p>
+        <div class="guide-step"><h4>Keeping scores current</h4>
+          <p><strong>Sync scores</strong> re-reads ESPN for everything you have published and writes the new score and status back to Firebase. Turn on auto-sync and leave this tab open during a matchday.</p>
         </div>
-        <div class="guide-step"><h4>Watch Button</h4>
-          <p>Matched cards get a <code>📺 Watch · Channel Name</code> button in the card footer linking to <code>?channel=FIREBASE_KEY</code> — your Live TV widget's deep-link format.</p>
+        <div class="guide-step"><h4>What gets stored</h4>
+          <p>Each event keeps <code>espnId</code>, <code>espnPath</code> and <code>kickoff</code> alongside the display fields, so sync and the theme widget can both work out live status without re-publishing.</p>
         </div>
-        <div class="guide-step"><h4>SofaScore Note</h4>
-          <p>SofaScore's unofficial API doesn't require a key but may rate-limit heavy usage. It returns regional broadcast data — results vary by country. The Broadcast Inspector panel shows exactly which source each broadcaster name came from.</p>
+        <div class="guide-step"><h4>Taking cards down</h4>
+          <p><strong>Remove finished</strong> deletes anything that ended more than three hours ago. Each row also has its own remove button. Nothing expires on its own — Firebase keeps what you put there.</p>
         </div>
-        <div class="guide-step"><h4>Publish to Site</h4>
-          <p>Pushes selected match data directly to Firebase under <code>match_events/{matchId}</code>. Your Blogger theme reads this and renders the cards automatically.</p>
+        <div class="guide-step"><h4>Broadcast matching (3 layers)</h4>
+          <p>ESPN <code>broadcasts[].names</code> first, then SofaScore <code>event/{id}/tvs</code> for football, then keyword scoring against your Firebase channel names. Matched channels become the Watch button on the card.</p>
         </div>
-        <div class="guide-step"><h4>Post URL Format</h4>
-          <p>Auto-generates Blogger permalinks in the format: <code>/{year}/{month}/{home}-vs-{away}-{league}.html</code>. Example: <code>https://www.sport803.online/2026/09/brentford-vs-chelsea-premier-league.html</code></p>
+        <div class="guide-step"><h4>Post URL format</h4>
+          <p>Auto-built as <code>/{year}/{month}/{home}-vs-{away}-{league}.html</code>, e.g. <code>https://www.sport803.online/2026/09/brentford-vs-chelsea-premier-league.html</code>. Override per match in the panel above.</p>
         </div>
       </div>
     </div>
@@ -422,9 +455,10 @@ const ALL_LEAGUES=[
   {id:'tennis-wta',name:'WTA Tennis',short:'WTA',sport:'other',emoji:'🎾',espnPath:'tennis/wta',espnType:'tennis'},
   {id:'mma-ufc',name:'UFC / MMA',short:'UFC',sport:'other',emoji:'🥊',espnPath:'mma/ufc',espnType:'mma'},
 ];
+function leagueById(id){ return ALL_LEAGUES.find(l=>l.id===id)||null; }
 
 // ═══════════════════════════════════════════
-// CHANNEL NAME NORMALIZATION ENGINE
+// CHANNEL NAME NORMALIZATION
 // ═══════════════════════════════════════════
 const ABBREV_MAP={
   'ss':'sky sports','sky sp':'sky sports','skysports':'sky sports',
@@ -485,51 +519,63 @@ let allMatches=[], selectedIds=new Set(), postLinks={}, channelOverrides={};
 let activeSport='all', activeLeague='all', activeOffset=0;
 let allChannels=[], fbReady=false, rtdb=null;
 let broadcastData={};
+let publishedEvents={};       // keyed by match id, mirrors Firebase match_events
+let autoSync=false, autoSyncTimer=null;
 
 // ═══════════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════════
+function siteId(){ return (document.getElementById('siteId').value||'').trim().replace(/^\/+|\/+$/g,''); }
+function fbPath(sub){ const s=siteId(); return (s?s+'/':'')+sub; }
+
 function initFirebase(){
   const dbUrl=(document.getElementById('fbUrl').value||'').trim();
   if(!dbUrl) return;
   try{
     if(!firebase.apps.length) firebase.initializeApp({databaseURL:dbUrl});
     rtdb=firebase.database();
-    rtdb.ref('livetv/channels').on('value',snap=>{
-      if(!snap.exists()){ allChannels=[]; setFbBadge('orange','0 channels'); return; }
+
+    rtdb.ref(fbPath('livetv/channels')).on('value',snap=>{
+      if(!snap.exists()){ allChannels=[]; setFbBadge('orange','No channels found'); return; }
       const d=snap.val();
       allChannels=Object.keys(d).map(k=>Object.assign({_key:k},d[k]));
       fbReady=true;
-      document.getElementById('fbBadge').className='info-badge green';
-      document.getElementById('fbStatus').textContent='Firebase connected';
+      setFbBadge('green','Firebase connected');
       document.getElementById('chBadge').style.display='flex';
       document.getElementById('chText').textContent=allChannels.length+' channels loaded';
       if(allMatches.length){ resolveBroadcastsForAll(); renderEvents(); updateStreamEditor(); }
     },err=>{ setFbBadge('red','Firebase: '+err.code); });
+
+    rtdb.ref(fbPath('match_events')).on('value',snap=>{
+      publishedEvents=snap.exists()?(snap.val()||{}):{};
+      renderPublishedPanel();
+      if(allMatches.length) renderEvents();
+    },err=>{ setStatus('Cannot read match_events: '+err.code,'err'); });
+
   }catch(e){ setFbBadge('red',e.message); }
 }
 function setFbBadge(col,msg){ document.getElementById('fbBadge').className='info-badge '+col; document.getElementById('fbStatus').textContent=msg; }
 
 // ═══════════════════════════════════════════
-// SOFA SCORE FETCHER
+// SOFASCORE
 // ═══════════════════════════════════════════
 async function fetchSofaBroadcasts(sofaEventId){
   try{
-    const r=await fetch(`https://api.sofascore.com/api/v1/event/${sofaEventId}/tvs`,{headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json'}});
+    const r=await fetch(`https://api.sofascore.com/api/v1/event/${sofaEventId}/tvs`,{headers:{'Accept':'application/json'}});
     if(!r.ok) return [];
     const d=await r.json();
     return (d.tvs||[]).map(t=>t.name||'').filter(Boolean);
   }catch{ return []; }
 }
-async function fetchSofaSchedule(leagueId, dateStr){
+async function fetchSofaSchedule(dateStr){
   try{
-    const r=await fetch(`https://api.sofascore.com/api/v1/sport/football/scheduled-events/${dateStr}`,{headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json'}});
+    const r=await fetch(`https://api.sofascore.com/api/v1/sport/football/scheduled-events/${dateStr}`,{headers:{'Accept':'application/json'}});
     if(!r.ok) return {};
     const d=await r.json();
     const map={};
     (d.events||[]).forEach(ev=>{
       const hName=(ev.homeTeam?.name||'').toLowerCase(); const aName=(ev.awayTeam?.name||'').toLowerCase();
-      const key=hName+'|'+aName; map[key]=ev.id;
+      map[hName+'|'+aName]=ev.id;
       const hShort=(ev.homeTeam?.shortName||'').toLowerCase(); const aShort=(ev.awayTeam?.shortName||'').toLowerCase();
       if(hShort&&aShort) map[hShort+'|'+aShort]=ev.id;
     });
@@ -547,7 +593,7 @@ async function resolveBroadcastsForAll(){
     const custom=document.getElementById('customDate').value;
     const dateNum=custom?custom.replace(/-/g,''):getESPNDate(activeOffset);
     const dateStr=dateNum.slice(0,4)+'-'+dateNum.slice(4,6)+'-'+dateNum.slice(6,8);
-    try{ sofaScheduleMap=await fetchSofaSchedule(null,dateStr); }catch{}
+    try{ sofaScheduleMap=await fetchSofaSchedule(dateStr); }catch{}
   }
   const promises=allMatches.map(async m=>{
     const entry={ espn:[], sofa:[], resolved:null, source:'none' };
@@ -556,7 +602,7 @@ async function resolveBroadcastsForAll(){
       const key=m.homeName.toLowerCase()+'|'+m.awayName.toLowerCase();
       const keyShort=m.homeName.toLowerCase().split(' ')[0]+'|'+m.awayName.toLowerCase().split(' ')[0];
       const sofaId=sofaScheduleMap[key]||sofaScheduleMap[keyShort];
-      if(sofaId){ const sofaNames=await fetchSofaBroadcasts(sofaId); entry.sofa=sofaNames; }
+      if(sofaId){ entry.sofa=await fetchSofaBroadcasts(sofaId); }
     }
     const allNames=[...new Set([...entry.espn,...entry.sofa])];
     if(allNames.length&&allChannels.length){
@@ -595,6 +641,7 @@ function keywordMatchChannel(match){
 // ═══════════════════════════════════════════
 try{ document.getElementById('tzName').textContent=Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){}
 function getESPNDate(off=0){ const d=new Date(); d.setDate(d.getDate()+off); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function dateNumFromISO(iso){ const d=new Date(iso); if(isNaN(d)) return getESPNDate(0); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
 function formatTimeLocal(iso){ if(!iso) return '--:--'; const d=new Date(iso); let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+(m<10?'0'+m:m)+' '+ap; }
 function formatTimeLabel(iso){ if(!iso) return '--:--'; const d=new Date(iso); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 const LIVE_S=new Set(['STATUS_IN_PROGRESS','STATUS_HALFTIME','STATUS_IN_PROGRESS_2','STATUS_END_PERIOD','STATUS_OVERTIME','STATUS_SHOOTOUT']);
@@ -606,9 +653,20 @@ function fbLogo(name){ return 'https://ui-avatars.com/api/?name='+encodeURICompo
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function setStatus(msg,type=''){ const el=document.getElementById('statusBar'); el.className='status-bar'+(type?' '+type:''); el.innerHTML=`<div class="dot${type==='loading'?' pulse':''}"></div><span>${msg}</span>`; }
 
+// Status for a published record (works without the ESPN object in memory)
+function pubStatusOf(p){
+  if(p.statusType){ if(LIVE_S.has(p.statusType)) return 'live'; if(END_S.has(p.statusType)) return 'ended'; }
+  const t=new Date(p.kickoff).getTime(); if(isNaN(t)) return 'upcoming';
+  const now=Date.now();
+  if(now<t) return 'upcoming';
+  if(now<t+6300000) return 'live';
+  return 'ended';
+}
+
 // ═══════════════════════════════════════════
 // NORMALIZERS
 // ═══════════════════════════════════════════
+function baseFields(league){ return { leagueId:league.id, espnPath:league.espnPath, espnType:league.espnType||'soccer' }; }
 function normalizeSoccer(ev,league){
   try{
     const comp=ev.competitions?.[0]; if(!comp) return null;
@@ -617,7 +675,7 @@ function normalizeSoccer(ev,league){
     if(!home||!away) return null;
     const st=comp.status||{}, sType=st.type?.name||'STATUS_SCHEDULED';
     const bcastNames=[]; (comp.broadcasts||[]).forEach(b=>{ (b.names||[]).forEach(n=>{ if(n) bcastNames.push(n); }); });
-    return { id:ev.id, date:ev.date, sport:'football', isRacing:false, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:home.team?.displayName||'Home', homeLogo:home.team?.logo||'', awayName:away.team?.displayName||'Away', awayLogo:away.team?.logo||'', scoreHome:home.score!==undefined&&home.score!==''?parseInt(home.score):null, scoreAway:away.score!==undefined&&away.score!==''?parseInt(away.score):null, statusType:sType, elapsed:st.displayClock||'', venue:comp.venue?.fullName||comp.venue?.address?.city||'TBC', espnBroadcasts:bcastNames };
+    return Object.assign({ id:ev.id, date:ev.date, sport:'football', isRacing:false, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:home.team?.displayName||'Home', homeLogo:home.team?.logo||'', awayName:away.team?.displayName||'Away', awayLogo:away.team?.logo||'', scoreHome:home.score!==undefined&&home.score!==''?parseInt(home.score):null, scoreAway:away.score!==undefined&&away.score!==''?parseInt(away.score):null, statusType:sType, elapsed:st.displayClock||'', venue:comp.venue?.fullName||comp.venue?.address?.city||'TBC', espnBroadcasts:bcastNames }, baseFields(league));
   }catch{ return null; }
 }
 function normalizeTeam(ev,league){
@@ -627,14 +685,14 @@ function normalizeTeam(ev,league){
     if(!home||!away) return null;
     const st=comp.status||{}, sType=st.type?.name||'STATUS_SCHEDULED';
     const bcastNames=[]; (comp.broadcasts||[]).forEach(b=>{ (b.names||[]).forEach(n=>{ if(n) bcastNames.push(n); }); });
-    return { id:ev.id, date:ev.date, sport:league.sport, isRacing:false, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:home.team?.displayName||'Home', homeLogo:home.team?.logo||'', awayName:away.team?.displayName||'Away', awayLogo:away.team?.logo||'', scoreHome:home.score!==undefined&&home.score!==''?parseInt(home.score):null, scoreAway:away.score!==undefined&&away.score!==''?parseInt(away.score):null, statusType:sType, elapsed:st.displayClock||'', venue:comp.venue?.fullName||'TBC', espnBroadcasts:bcastNames };
+    return Object.assign({ id:ev.id, date:ev.date, sport:league.sport, isRacing:false, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:home.team?.displayName||'Home', homeLogo:home.team?.logo||'', awayName:away.team?.displayName||'Away', awayLogo:away.team?.logo||'', scoreHome:home.score!==undefined&&home.score!==''?parseInt(home.score):null, scoreAway:away.score!==undefined&&away.score!==''?parseInt(away.score):null, statusType:sType, elapsed:st.displayClock||'', venue:comp.venue?.fullName||'TBC', espnBroadcasts:bcastNames }, baseFields(league));
   }catch{ return null; }
 }
 function normalizeRacing(ev,league){
   try{
     const st=ev.status||{}, sType=st.type?.name||'STATUS_SCHEDULED';
     const bcastNames=[]; (ev.competitions||[]).forEach(comp=>{ (comp.broadcasts||[]).forEach(b=>{ (b.names||[]).forEach(n=>{ if(n) bcastNames.push(n); }); }); });
-    return { id:ev.id, date:ev.date, sport:'motorsport', isRacing:true, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:ev.name||ev.shortName||'Race Event', homeLogo:'', awayName:ev.circuit?.shortName||'', awayLogo:'', scoreHome:null, scoreAway:null, statusType:sType, elapsed:'', venue:ev.circuit?.fullName||ev.venue?.fullName||'TBC', espnBroadcasts:bcastNames };
+    return Object.assign({ id:ev.id, date:ev.date, sport:'motorsport', isRacing:true, league:{name:league.name,emoji:league.emoji,id:league.id}, homeName:ev.name||ev.shortName||'Race Event', homeLogo:'', awayName:ev.circuit?.shortName||'', awayLogo:'', scoreHome:null, scoreAway:null, statusType:sType, elapsed:'', venue:ev.circuit?.fullName||ev.venue?.fullName||'TBC', espnBroadcasts:bcastNames }, baseFields(league));
   }catch{ return null; }
 }
 
@@ -664,7 +722,7 @@ async function fetchMatches(){
   const dateStr=custom?custom.replace(/-/g,''):getESPNDate(activeOffset);
   const disp=dateStr.slice(0,4)+'-'+dateStr.slice(4,6)+'-'+dateStr.slice(6,8);
   setStatus('Fetching '+disp+'…','loading');
-  document.getElementById('eventsArea').innerHTML=`<div class="loader-wrap"><div class="spinner"></div><div style="font-size:12px;color:var(--txt3)">Loading ESPN + broadcast data…</div></div>`;
+  document.getElementById('eventsArea').innerHTML=`<div class="loader-wrap"><div class="spinner"></div><div style="font-size:12px;color:var(--txt3)">Loading ESPN and broadcast data…</div></div>`;
   document.getElementById('bcastPanel').style.display='none';
 
   let toFetch;
@@ -692,7 +750,7 @@ async function fetchMatches(){
     allMatches.sort((a,b)=>{ const o={live:0,upcoming:1,ended:2}; const sa=o[getStatus(a)]??1,sb=o[getStatus(b)]??1; return sa!==sb?sa-sb:new Date(a.date)-new Date(b.date); });
 
     if(!allMatches.length){
-      document.getElementById('eventsArea').innerHTML=`<div class="events-empty"><span>🔍</span>No matches for ${disp}<small>Try a different date or league</small></div>`;
+      document.getElementById('eventsArea').innerHTML=`<div class="events-empty"><span>🔍</span>Nothing scheduled for ${disp}<small>Try another date or league</small></div>`;
       setStatus('No events found','err'); return;
     }
 
@@ -701,10 +759,10 @@ async function fetchMatches(){
     await resolveBroadcastsForAll();
     const resolved=Object.values(broadcastData).filter(b=>b.resolved).length;
     renderEvents();
-    setStatus(`${allMatches.length} matches · ${espnHit} ESPN · ${resolved} channels matched`,'ok');
+    setStatus(`${allMatches.length} matches · ${espnHit} with ESPN data · ${resolved} channels matched`,'ok');
   }catch(err){
-    setStatus('Fetch error: '+err.message,'err');
-    document.getElementById('eventsArea').innerHTML=`<div class="events-empty"><span>⚠️</span>${err.message}</div>`;
+    setStatus('Fetch failed: '+err.message,'err');
+    document.getElementById('eventsArea').innerHTML=`<div class="events-empty"><span>⚠️</span>${esc(err.message)}</div>`;
   }
 }
 
@@ -716,7 +774,7 @@ function renderEvents(){
   let matches=allMatches;
   if(activeLeague!=='all') matches=matches.filter(m=>m.league.id===activeLeague);
   else if(activeSport!=='all') matches=matches.filter(m=>m.sport===activeSport);
-  if(!matches.length){ area.innerHTML=`<div class="events-empty"><span>🔍</span>No matches for this filter</div>`; return; }
+  if(!matches.length){ area.innerHTML=`<div class="events-empty"><span>🔍</span>Nothing matches this filter</div>`; return; }
 
   const groups={};
   matches.forEach(m=>{ if(!groups[m.league.id]) groups[m.league.id]={league:m.league,matches:[]}; groups[m.league.id].matches.push(m); });
@@ -726,27 +784,29 @@ function renderEvents(){
     html+=`<div class="league-hdr"><span>${g.league.emoji}</span><span class="league-hdr-name">${g.league.name.toUpperCase()}</span><span class="league-hdr-ct">${g.matches.length}</span></div>`;
     g.matches.forEach(m=>{
       const sel=selectedIds.has(m.id), st=getStatus(m), lbl=getStatusLabel(m);
+      const isPub=!!publishedEvents[m.id];
       const hLogo=m.homeLogo||fbLogo(m.homeName); const aLogo=m.awayLogo||fbLogo(m.awayName);
       const title=m.isRacing?m.homeName:m.homeName+' vs '+m.awayName;
       const bd=broadcastData[m.id]||{};
       const ch=channelOverrides.hasOwnProperty(m.id)?(channelOverrides[m.id]?allChannels.find(c=>c._key===channelOverrides[m.id]):null):bd.resolved?.ch;
 
       let srcBadges='';
-      if(bd.espn?.length) srcBadges+=`<span class="src-badge espn">🟠 ESPN: ${esc(bd.espn.slice(0,2).join(', '))}${bd.espn.length>2?'…':''}</span>`;
+      if(isPub) srcBadges+=`<span class="src-badge live-site">📡 On site</span>`;
+      if(bd.espn?.length) srcBadges+=`<span class="src-badge espn">🟠 ${esc(bd.espn.slice(0,2).join(', '))}${bd.espn.length>2?'…':''}</span>`;
       else if(bd.sofa?.length) srcBadges+=`<span class="src-badge sofa">🔵 ${esc(bd.sofa.slice(0,2).join(', '))}${bd.sofa.length>2?'…':''}</span>`;
       else if(bd.resolved?.source==='kw') srcBadges+=`<span class="src-badge kw">🟣 Keyword</span>`;
-      else srcBadges+=`<span class="src-badge none">— No broadcast data</span>`;
+      else srcBadges+=`<span class="src-badge none">No broadcast data</span>`;
       if(ch) srcBadges+=`<span class="src-badge matched">✅ ${esc(ch.name)}</span>`;
 
       html+=`
-      <div class="event-item${sel?' selected':''}" data-id="${m.id}" onclick="toggleSelect('${m.id}')">
+      <div class="event-item${sel?' selected':''}${isPub?' published':''}" data-id="${m.id}" onclick="toggleSelect('${m.id}')">
         <div class="ev-chk"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="ev-logos">
           <img class="ev-logo" src="${hLogo}" alt="" onerror="this.src='${fbLogo(m.homeName)}'"/>
           ${m.isRacing?`<span class="ev-vs">${m.league.emoji}</span>`:`<span class="ev-vs">VS</span><img class="ev-logo" src="${aLogo}" alt="" onerror="this.src='${fbLogo(m.awayName)}'"/>`}
         </div>
         <div class="ev-info">
-          <div class="ev-teams">${title}</div>
+          <div class="ev-teams">${esc(title)}</div>
           <div class="ev-meta"><span class="ev-league">${g.league.name}</span>${srcBadges}</div>
         </div>
         <div class="ev-time-col">
@@ -760,7 +820,60 @@ function renderEvents(){
 }
 
 // ═══════════════════════════════════════════
-// BROADCAST PANEL RENDER
+// PUBLISHED PANEL
+// ═══════════════════════════════════════════
+function renderPublishedPanel(){
+  const panel=document.getElementById('pubPanel');
+  const list=Object.values(publishedEvents);
+  const badge=document.getElementById('pubBadge');
+
+  if(!list.length){
+    panel.style.display='none';
+    badge.style.display='none';
+    return;
+  }
+  panel.style.display='block';
+  badge.style.display='flex';
+  document.getElementById('pubText').textContent=list.length+' live on site';
+
+  const live=list.filter(p=>pubStatusOf(p)==='live').length;
+  const up=list.filter(p=>pubStatusOf(p)==='upcoming').length;
+  const done=list.filter(p=>pubStatusOf(p)==='ended').length;
+  const withCh=list.filter(p=>p.channelKey).length;
+
+  document.getElementById('pubStats').innerHTML=`
+    <div class="bp-stat"><div class="bp-stat-val teal">${list.length}</div><div class="bp-stat-lbl">Published</div></div>
+    <div class="bp-stat"><div class="bp-stat-val red">${live}</div><div class="bp-stat-lbl">Live now</div></div>
+    <div class="bp-stat"><div class="bp-stat-val green">${up}</div><div class="bp-stat-lbl">Upcoming</div></div>
+    <div class="bp-stat"><div class="bp-stat-val orange">${done}</div><div class="bp-stat-lbl">Finished</div></div>
+    <div class="bp-stat"><div class="bp-stat-val blue">${withCh}</div><div class="bp-stat-lbl">With channel</div></div>
+  `;
+
+  list.sort((a,b)=>{
+    const o={live:0,upcoming:1,ended:2};
+    const sa=o[pubStatusOf(a)]??1, sb=o[pubStatusOf(b)]??1;
+    return sa!==sb?sa-sb:new Date(a.kickoff)-new Date(b.kickoff);
+  });
+
+  let rows='';
+  list.forEach(p=>{
+    const st=pubStatusOf(p);
+    const title=p.isRacing?p.homeName:p.homeName+' vs '+p.awayName;
+    rows+=`<div class="bp-row">
+      <div class="ev-status ${st}" style="margin:0">${st==='live'?'LIVE':st==='ended'?'Ended':formatTimeLocal(p.kickoff)}</div>
+      <div class="bp-match"><strong>${esc(title)}</strong> <span style="color:var(--txt3)">${esc(p.leagueName||'')}</span></div>
+      <div class="bp-broadcasters">
+        <span class="bp-ch-name ${p.channelKey?'matched':'raw'}">${p.channelKey?'📺 '+esc(p.channelName||'Channel'):'No channel'}</span>
+        <span class="bp-ch-name raw">${esc(p.score||'- -')}</span>
+        <button class="mini-btn" onclick="unpublish('${esc(p.id)}')">Remove</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('pubRows').innerHTML=rows;
+}
+
+// ═══════════════════════════════════════════
+// BROADCAST PANEL
 // ═══════════════════════════════════════════
 function renderBroadcastPanel(){
   const panel=document.getElementById('bcastPanel');
@@ -775,7 +888,7 @@ function renderBroadcastPanel(){
   document.getElementById('bcastHdrSub').textContent=`${total} matches scanned`;
   document.getElementById('bcastStats').innerHTML=`
     <div class="bp-stat"><div class="bp-stat-val red">${total}</div><div class="bp-stat-lbl">Matches</div></div>
-    <div class="bp-stat"><div class="bp-stat-val orange">${hasEspn}</div><div class="bp-stat-lbl">ESPN Data</div></div>
+    <div class="bp-stat"><div class="bp-stat-val orange">${hasEspn}</div><div class="bp-stat-lbl">ESPN data</div></div>
     <div class="bp-stat"><div class="bp-stat-val blue">${hasSofa}</div><div class="bp-stat-lbl">SofaScore</div></div>
     <div class="bp-stat"><div class="bp-stat-val green">${resolved}</div><div class="bp-stat-lbl">Matched</div></div>
   `;
@@ -791,23 +904,17 @@ function renderBroadcastPanel(){
     const nameChips=allNames.length
       ?allNames.map(n=>{
           const isEspn=(bd.espn||[]).includes(n);
-          const isSofa=(bd.sofa||[]).includes(n);
           const isMapped=bd.resolved?.matchedAs===n;
-          return `<span class="bp-ch-name${isMapped?' matched':' raw'}" title="${isMapped?'Matched → '+bd.resolved.ch.name:'No match found (score too low)'}">
-            ${isEspn?'🟠':'🔵'} ${esc(n)}${isMapped?' ✓':''}
-          </span>`;
+          return `<span class="bp-ch-name${isMapped?' matched':' raw'}" title="${isMapped?'Matched to '+esc(bd.resolved.ch.name):'No match — score too low'}">${isEspn?'🟠':'🔵'} ${esc(n)}${isMapped?' ✓':''}</span>`;
         }).join('')
-      :`<span class="bp-ch-name raw">${bd.resolved?.source==='kw'?'🟣 Keyword match':'— No broadcast data'}</span>`;
+      :`<span class="bp-ch-name raw">${bd.resolved?.source==='kw'?'🟣 Keyword match':'No broadcast data'}</span>`;
 
     rows+=`<div class="bp-row">
       <div class="bp-match"><strong>${esc(title)}</strong> <span style="color:var(--txt3)">${m.league.name}</span></div>
-      <div class="bp-broadcasters">
-        ${nameChips}
-        ${ch?`<span class="bp-ch-name matched">📺 ${esc(ch.name)}</span>`:''}
-      </div>
+      <div class="bp-broadcasters">${nameChips}${ch?`<span class="bp-ch-name matched">📺 ${esc(ch.name)}</span>`:''}</div>
     </div>`;
   });
-  document.getElementById('bcastRows').innerHTML=rows||'<div style="padding:12px;color:var(--txt3);font-size:12px">No broadcast data fetched yet.</div>';
+  document.getElementById('bcastRows').innerHTML=rows||'<div style="padding:12px;color:var(--txt3);font-size:12px">Nothing fetched yet.</div>';
 }
 
 // ═══════════════════════════════════════════
@@ -815,7 +922,15 @@ function renderBroadcastPanel(){
 // ═══════════════════════════════════════════
 function toggleSelect(id){ selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id); document.querySelector(`[data-id="${id}"]`)?.classList.toggle('selected',selectedIds.has(id)); updateSelCount(); updateStreamEditor(); }
 function toggleAll(){ const items=document.querySelectorAll('.event-item'); const allSel=[...items].every(el=>el.classList.contains('selected')); items.forEach(el=>{ const id=el.dataset.id; if(allSel){ selectedIds.delete(id); el.classList.remove('selected'); } else { selectedIds.add(id); el.classList.add('selected'); } }); updateSelCount(); updateStreamEditor(); }
-function updateSelCount(){ const n=selectedIds.size; document.getElementById('selCount').textContent=n+' selected'; const all=document.querySelectorAll('.event-item'),sel=document.querySelectorAll('.event-item.selected'); document.getElementById('selAllBtn').textContent=(all.length>0&&all.length===sel.length)?'Deselect All':'Select All'; }
+function selectUnpublished(){
+  document.querySelectorAll('.event-item').forEach(el=>{
+    const id=el.dataset.id;
+    if(publishedEvents[id]){ selectedIds.delete(id); el.classList.remove('selected'); }
+    else { selectedIds.add(id); el.classList.add('selected'); }
+  });
+  updateSelCount(); updateStreamEditor();
+}
+function updateSelCount(){ const n=selectedIds.size; document.getElementById('selCount').textContent=n+' selected'; const all=document.querySelectorAll('.event-item'),sel=document.querySelectorAll('.event-item.selected'); document.getElementById('selAllBtn').textContent=(all.length>0&&all.length===sel.length)?'Deselect all':'Select all'; }
 
 // ═══════════════════════════════════════════
 // STREAM / CHANNEL EDITOR
@@ -838,14 +953,13 @@ function updateStreamEditor(){
     const candidates=[];
     if(bd.resolved?.ch){ candidates.push({ch:bd.resolved.ch,src:bd.source,label:bd.resolved.matchedAs,score:bd.resolved.score}); }
     if(allChannels.length){
-      const kwScored=allChannels.map(ch=>({ch,score:keywordMatchChannel(m)?._kwScore||0})).filter(x=>x.score>0);
-      kwScored.sort((a,b)=>b.score-a.score);
-      kwScored.slice(0,4).forEach(x=>{ if(!candidates.find(c=>c.ch._key===x.ch._key)) candidates.push({ch:x.ch,src:'kw',score:x.score,label:'keyword'}); });
+      const kwBest=keywordMatchChannel(m);
+      if(kwBest&&!candidates.find(c=>c.ch._key===kwBest._key)) candidates.push({ch:kwBest,src:'kw',score:kwBest._kwScore||0,label:'keyword'});
     }
     allBroadcastNames.forEach(bname=>{
       allChannels.forEach(ch=>{
         const s=fuzzyChannelScore(bname,ch.name);
-        if(s>=25&&!candidates.find(c=>c.ch._key===ch._key)&&s>20){ if(!candidates.find(c=>c.ch._key===ch._key)) candidates.push({ch,src:'espn',score:s,label:bname}); }
+        if(s>=25&&!candidates.find(c=>c.ch._key===ch._key)) candidates.push({ch,src:'espn',score:s,label:bname});
       });
     });
     const top=[...candidates].sort((a,b)=>b.score-a.score).filter((v,i,a)=>a.findIndex(x=>x.ch._key===v.ch._key)===i).slice(0,8);
@@ -854,17 +968,17 @@ function updateStreamEditor(){
     let chipsHtml=top.map(({ch,src,score,label})=>{
       const isSel=ch._key===currentKey;
       const srcEmoji=src==='espn'?'🟠':src==='sofa'?'🔵':'🟣';
-      return `<div class="ch-chip${isSel?' selected':''}${src==='espn'?' espn-src':src==='sofa'?' sofa-src':''}" onclick="selectChannel('${esc(id)}','${esc(ch._key)}')" title="Source: ${src} · Match: ${esc(label)} · Score: ${score}">${srcEmoji} ${esc(ch.name)}</div>`;
+      return `<div class="ch-chip${isSel?' selected':''}${src==='espn'?' espn-src':src==='sofa'?' sofa-src':''}" onclick="selectChannel('${esc(id)}','${esc(ch._key)}')" title="Source: ${src} · matched on ${esc(label)} · score ${score}">${srcEmoji} ${esc(ch.name)}</div>`;
     }).join('');
-    if(!chipsHtml) chipsHtml=`<span class="ch-no-ch">No channels available — Firebase may not be connected</span>`;
+    if(!chipsHtml) chipsHtml=`<span class="ch-no-ch">No channels loaded — check the Firebase connection</span>`;
     chipsHtml+=`<div class="ch-chip${isNone?' selected':''}" onclick="selectChannel('${esc(id)}',null)">✕ None</div>`;
-    const bcastSummary=allBroadcastNames.length?`<div style="font-size:10px;color:var(--txt3);margin-bottom:4px">Broadcasters found: ${allBroadcastNames.map(n=>`<code style="font-size:9px;color:#ffd700;background:var(--surface3);padding:1px 4px;border-radius:3px">${esc(n)}</code>`).join(' ')}</div>`:`<div style="font-size:10px;color:var(--txt3);margin-bottom:4px">No broadcast data from ESPN/SofaScore — using keyword match</div>`;
+    const bcastSummary=allBroadcastNames.length?`<div style="font-size:10px;color:var(--txt3);margin-bottom:4px">Broadcasters: ${allBroadcastNames.map(n=>`<code style="font-size:9px;color:#ffd700;background:var(--surface3);padding:1px 4px;border-radius:3px">${esc(n)}</code>`).join(' ')}</div>`:`<div style="font-size:10px;color:var(--txt3);margin-bottom:4px">No broadcast data — falling back to keyword matching</div>`;
 
     h+=`<div class="stream-row">
       <div class="stream-row-top"><div class="stream-lbl" title="${esc(lbl)}">${m.league.emoji} ${esc(lbl)}</div></div>
       ${bcastSummary}
-      <input type="text" value="${val}" placeholder="Post URL (auto-generated if blank)…" oninput="postLinks['${id}']=this.value" style="margin-bottom:6px"/>
-      <div class="ch-selector-label" style="font-size:9px;color:var(--txt3);font-family:var(--font-head);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Watch Channel</div>
+      <input type="text" value="${val}" placeholder="Post URL — built automatically if left blank" oninput="postLinks['${id}']=this.value" style="margin-bottom:6px"/>
+      <div style="font-size:9px;color:var(--txt3);font-family:var(--font-head);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Watch channel</div>
       <div class="ch-chips">${chipsHtml}</div>
     </div>`;
   });
@@ -873,145 +987,193 @@ function updateStreamEditor(){
 function selectChannel(matchId,chKey){ channelOverrides[matchId]=chKey; updateStreamEditor(); renderBroadcastPanel(); }
 
 // ═══════════════════════════════════════════
-// URL BUILDER — FIXED FOR BLOGGER PERMALINK FORMAT
+// URL BUILDER
 // ═══════════════════════════════════════════
-function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
-
+function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
 function buildPostUrl(m){
-  // If user manually entered a URL, use it
   if(postLinks[m.id]) return postLinks[m.id];
-  
   const base=(document.getElementById('blogBase').value||'https://www.sport803.online').replace(/\/$/,'');
-  const d=new Date(m.date); 
-  const yr=d.getFullYear(); 
+  const d=new Date(m.date);
+  const yr=d.getFullYear();
   const mo=String(d.getMonth()+1).padStart(2,'0');
-  
-  // Build slug: home-vs-away-league
-  // Example: "Brentford vs Chelsea – Premier League Live Stream | Sports 803"
-  // → "brentford-vs-chelsea-premier-league"
-  var titleSlug;
-  if(m.isRacing){
-    titleSlug = slugify(m.homeName) + '-' + slugify(m.league.name);
-  } else {
-    titleSlug = slugify(m.homeName) + '-vs-' + slugify(m.awayName) + '-' + slugify(m.league.name);
-  }
-  
-  return base + '/' + yr + '/' + mo + '/' + titleSlug + '.html';
+  const titleSlug=m.isRacing
+    ? slugify(m.homeName)+'-'+slugify(m.league.name)
+    : slugify(m.homeName)+'-vs-'+slugify(m.awayName)+'-'+slugify(m.league.name);
+  return base+'/'+yr+'/'+mo+'/'+titleSlug+'.html';
 }
-
 function getChannelForMatch(matchId){ if(channelOverrides.hasOwnProperty(matchId)){ if(channelOverrides[matchId]===null) return null; return allChannels.find(c=>c._key===channelOverrides[matchId])||null; } return broadcastData[matchId]?.resolved?.ch||null; }
-function buildChannelLink(ch){ return `https://www.sport803.online/?channel=${encodeURIComponent(ch._key)}`; }
+function buildChannelLink(ch){ const base=(document.getElementById('blogBase').value||'https://www.sport803.online').replace(/\/$/,''); return base+'/?channel='+encodeURIComponent(ch._key); }
 
 // ═══════════════════════════════════════════
-// FIREBASE PUBLISH & LOAD
+// PUBLISH / UNPUBLISH / SYNC
 // ═══════════════════════════════════════════
-async function publishToFirebase() {
-  if (!selectedIds.size) { setStatus('Select at least one event first', 'err'); return; }
-  if (!rtdb) { setStatus('Firebase not connected', 'err'); return; }
-  
-  setStatus('Publishing to Firebase…', 'loading');
-  let successCount = 0;
-  let errors = 0;
+async function publishToFirebase(){
+  if(!selectedIds.size){ setStatus('Select at least one match first','err'); return; }
+  if(!rtdb){ setStatus('Firebase is not connected','err'); return; }
 
-  for (const id of selectedIds) {
-    const m = allMatches.find(x => x.id === id);
-    if (!m) continue;
+  setStatus('Publishing…','loading');
+  let ok=0, failed=0;
+  const updates={};
 
-    const ch = getChannelForMatch(m.id);
-    const postUrl = buildPostUrl(m);
-    const st = getStatus(m);
-    const lbl = getStatusLabel(m);
-    const score = getScore(m);
-
-    // Build clean JSON object for the frontend to read
-    const matchData = {
-      id: m.id,
-      kickoff: m.date,
-      leagueName: m.league.name,
-      leagueEmoji: m.league.emoji,
-      homeName: m.homeName,
-      homeLogo: m.homeLogo || fbLogo(m.homeName),
-      awayName: m.awayName,
-      awayLogo: m.awayLogo || fbLogo(m.awayName),
-      score: score,
-      status: st,
-      statusLabel: lbl,
-      isRacing: m.isRacing,
-      postUrl: postUrl,
-      channelKey: ch ? ch._key : null,
-      channelName: ch ? ch.name : null,
-      channelUrl: ch ? buildChannelLink(ch) : null,
-      updatedAt: Date.now()
+  for(const id of selectedIds){
+    const m=allMatches.find(x=>x.id===id);
+    if(!m) continue;
+    const ch=getChannelForMatch(m.id);
+    const existing=publishedEvents[m.id]||{};
+    updates[m.id]={
+      id:m.id,
+      espnId:m.id,
+      espnPath:m.espnPath||'',
+      espnType:m.espnType||'soccer',
+      leagueId:m.league.id,
+      leagueName:m.league.name,
+      leagueEmoji:m.league.emoji,
+      kickoff:m.date,
+      homeName:m.homeName,
+      homeLogo:m.homeLogo||fbLogo(m.homeName),
+      awayName:m.awayName,
+      awayLogo:m.awayLogo||fbLogo(m.awayName),
+      scoreHome:(m.scoreHome===null||m.scoreHome===undefined)?null:m.scoreHome,
+      scoreAway:(m.scoreAway===null||m.scoreAway===undefined)?null:m.scoreAway,
+      score:getScore(m),
+      statusType:m.statusType,
+      status:getStatus(m),
+      statusLabel:getStatusLabel(m),
+      isRacing:!!m.isRacing,
+      sport:m.sport,
+      postUrl:buildPostUrl(m),
+      channelKey:ch?ch._key:null,
+      channelName:ch?ch.name:null,
+      channelUrl:ch?buildChannelLink(ch):null,
+      publishedAt:existing.publishedAt||Date.now(),
+      updatedAt:Date.now()
     };
-
-    try {
-      await rtdb.ref('match_events/' + m.id).set(matchData);
-      successCount++;
-    } catch (err) {
-      console.error('Error publishing match:', m.id, err);
-      errors++;
-    }
   }
 
-  if (errors > 0) {
-    setStatus(`Published ${successCount} events. ${errors} failed.`, 'err');
-  } else {
-    setStatus(`Successfully published ${successCount} events to Firebase!`, 'ok');
-    // Clear selection after publish
-    selectedIds.clear();
-    updateSelCount();
-    updateStreamEditor();
+  try{
+    await rtdb.ref(fbPath('match_events')).update(updates);
+    ok=Object.keys(updates).length;
+  }catch(err){
+    console.error(err); failed=Object.keys(updates).length;
+  }
+
+  if(failed){ setStatus('Publish failed — check your database rules for write access','err'); }
+  else{
+    setStatus(`${ok} match${ok!==1?'es':''} published — the site will pick them up on its next refresh`,'ok');
+    selectedIds.clear(); updateSelCount(); updateStreamEditor();
+    if(allMatches.length) renderEvents();
   }
 }
 
-async function loadFromFirebase() {
-  if (!rtdb) { setStatus('Firebase not connected', 'err'); return; }
-  setStatus('Loading events from Firebase…', 'loading');
-  
-  try {
-    const snapshot = await rtdb.ref('match_events').once('value');
-    if (!snapshot.exists()) {
-      setStatus('No events found in Firebase.', 'err');
-      return;
+async function unpublish(id){
+  if(!rtdb) return;
+  try{
+    await rtdb.ref(fbPath('match_events/'+id)).remove();
+    setStatus('Removed from the site','ok');
+  }catch(err){ setStatus('Could not remove: '+err.message,'err'); }
+}
+
+async function purgeEnded(){
+  if(!rtdb) return;
+  const cutoff=Date.now()-3*3600000;
+  const doomed=Object.values(publishedEvents).filter(p=>{
+    const t=new Date(p.kickoff).getTime();
+    return pubStatusOf(p)==='ended' && (!isNaN(t)?t<cutoff:true);
+  });
+  if(!doomed.length){ setStatus('Nothing finished long enough to remove','ok'); return; }
+  const updates={}; doomed.forEach(p=>{ updates[p.id]=null; });
+  try{
+    await rtdb.ref(fbPath('match_events')).update(updates);
+    setStatus(`Removed ${doomed.length} finished match${doomed.length!==1?'es':''}`,'ok');
+  }catch(err){ setStatus('Could not remove: '+err.message,'err'); }
+}
+
+async function clearAllPublished(){
+  if(!rtdb) return;
+  const n=Object.keys(publishedEvents).length;
+  if(!n) return;
+  if(!confirm('Remove all '+n+' published matches from the site?')) return;
+  try{
+    await rtdb.ref(fbPath('match_events')).remove();
+    setStatus('All published matches removed','ok');
+  }catch(err){ setStatus('Could not remove: '+err.message,'err'); }
+}
+
+// Re-read ESPN for everything published and write fresh scores back
+async function syncPublished(){
+  if(!rtdb){ setStatus('Firebase is not connected','err'); return; }
+  const list=Object.values(publishedEvents);
+  if(!list.length){ setStatus('Nothing published to sync','ok'); return; }
+
+  setStatus('Syncing scores…','loading');
+
+  // group by espnPath + date so we make one request per scoreboard
+  const buckets={};
+  list.forEach(p=>{
+    if(!p.espnPath) return;
+    const isRacing=p.isRacing||p.espnType==='racing';
+    const key=p.espnPath+'|'+(isRacing?'':dateNumFromISO(p.kickoff));
+    if(!buckets[key]) buckets[key]={path:p.espnPath,date:isRacing?null:dateNumFromISO(p.kickoff),racing:isRacing};
+  });
+
+  const found={};
+  await Promise.all(Object.values(buckets).map(async b=>{
+    const url=b.racing
+      ? `https://site.api.espn.com/apis/site/v2/sports/${b.path}/scoreboard?limit=20`
+      : `https://site.api.espn.com/apis/site/v2/sports/${b.path}/scoreboard?dates=${b.date}&limit=50`;
+    try{
+      const r=await fetch(url); const d=await r.json();
+      (d.events||[]).forEach(ev=>{ found[ev.id]=ev; });
+    }catch{}
+  }));
+
+  const updates={}; let touched=0;
+  list.forEach(p=>{
+    const ev=found[p.espnId||p.id]; if(!ev) return;
+    const comp=ev.competitions?.[0];
+    const st=(comp?.status)||ev.status||{};
+    const sType=st.type?.name||p.statusType;
+    let sh=p.scoreHome, sa=p.scoreAway;
+    if(comp&&!p.isRacing){
+      const home=comp.competitors?.find(c=>c.homeAway==='home');
+      const away=comp.competitors?.find(c=>c.homeAway==='away');
+      if(home&&home.score!==undefined&&home.score!=='') sh=parseInt(home.score);
+      if(away&&away.score!==undefined&&away.score!=='') sa=parseInt(away.score);
     }
-    
-    const data = snapshot.val();
-    allMatches = Object.values(data).map(m => ({
-      id: m.id,
-      date: m.kickoff,
-      sport: m.isRacing ? 'motorsport' : (m.leagueName.toLowerCase().includes('nba') ? 'basketball' : 'football'),
-      isRacing: m.isRacing,
-      league: { name: m.leagueName, emoji: m.leagueEmoji, id: m.id.split('-')[0] },
-      homeName: m.homeName,
-      homeLogo: m.homeLogo,
-      awayName: m.awayName,
-      awayLogo: m.awayLogo,
-      scoreHome: m.score ? m.score.split(' - ')[0] : null,
-      scoreAway: m.score ? m.score.split(' - ')[1] : null,
-      statusType: m.status === 'live' ? 'STATUS_IN_PROGRESS' : m.status === 'ended' ? 'STATUS_FINAL' : 'STATUS_SCHEDULED',
-      elapsed: m.statusLabel,
-      espnBroadcasts: [],
-      channelOverride: m.channelKey
-    }));
-    
-    allMatches.sort((a,b) => {
-      const o = {live:0, upcoming:1, ended:2};
-      const sa = o[getStatus(a)] ?? 1, sb = o[getStatus(b)] ?? 1;
-      return sa !== sb ? sa - sb : new Date(a.date) - new Date(b.date);
-    });
-    
-    renderEvents();
-    setStatus(`Loaded ${allMatches.length} events from Firebase`, 'ok');
-  } catch (err) {
-    setStatus('Error loading from Firebase: ' + err.message, 'err');
-  }
+    const shadow={statusType:sType,elapsed:st.displayClock||'',scoreHome:sh,scoreAway:sa,isRacing:p.isRacing};
+    const newStatus=getStatus(shadow), newLabel=getStatusLabel(shadow), newScore=getScore(shadow);
+    if(p.statusType===sType&&p.score===newScore&&p.statusLabel===newLabel) return;
+    updates[p.id+'/statusType']=sType;
+    updates[p.id+'/status']=newStatus;
+    updates[p.id+'/statusLabel']=newLabel;
+    updates[p.id+'/scoreHome']=(sh===null||sh===undefined)?null:sh;
+    updates[p.id+'/scoreAway']=(sa===null||sa===undefined)?null:sa;
+    updates[p.id+'/score']=newScore;
+    updates[p.id+'/kickoff']=ev.date||p.kickoff;
+    updates[p.id+'/updatedAt']=Date.now();
+    touched++;
+  });
+
+  if(!touched){ setStatus('Scores already current','ok'); return; }
+  try{
+    await rtdb.ref(fbPath('match_events')).update(updates);
+    setStatus(`Synced ${touched} match${touched!==1?'es':''}`,'ok');
+  }catch(err){ setStatus('Sync failed: '+err.message,'err'); }
+}
+
+function toggleAutoSync(){
+  autoSync=!autoSync;
+  document.getElementById('autoSyncSwitch').classList.toggle('on',autoSync);
+  if(autoSyncTimer){ clearInterval(autoSyncTimer); autoSyncTimer=null; }
+  if(autoSync){ autoSyncTimer=setInterval(syncPublished,60000); syncPublished(); }
+  localStorage.setItem('s803_autosync',autoSync?'1':'0');
 }
 
 // ═══════════════════════════════════════════
-// GENERATE CARDS (Keep for preview/backup)
+// STATIC CARDS (backup path)
 // ═══════════════════════════════════════════
 function generateCards(){
-  if(!selectedIds.size){ setStatus('Select at least one event first','err'); return; }
+  if(!selectedIds.size){ setStatus('Select at least one match first','err'); return; }
   let previewHtml='', cardBlocks=''; let idx=1;
   selectedIds.forEach(id=>{
     const m=allMatches.find(x=>x.id===id); if(!m) return;
@@ -1042,14 +1204,17 @@ function generateCards(){
   initPreviewRuntime(document.getElementById('cardPreview'));
   document.getElementById('outputArea').scrollIntoView({behavior:'smooth',block:'start'});
   const chCount=[...selectedIds].filter(id=>getChannelForMatch(id)).length;
-  setStatus(selectedIds.size+' cards generated ✓ · '+chCount+' with Watch button','ok');
+  setStatus(selectedIds.size+' static cards built · '+chCount+' with a watch button','ok');
 }
 
 function getRuntimeScript(){ return `<script>\n(function(){\n  document.querySelectorAll('.match-card[data-kickoff]').forEach(function(card){\n    var ko=card.getAttribute('data-kickoff'); var d=new Date(ko); if(isNaN(d)) return;\n    var h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM'; h=h%12||12;\n    var tags=card.querySelectorAll('.match-meta .meta-tag');\n    if(tags[1]) tags[1].textContent=h+':'+(m<10?'0'+m:m)+' '+ap;\n  });\n  function tick(){\n    document.querySelectorAll('.match-card[data-kickoff]').forEach(function(card){\n      var ko=card.getAttribute('data-kickoff'); if(!ko) return;\n      var diff=new Date(ko)-Date.now();\n      var cd=card.querySelector('.cd'),badge=card.querySelector('.badge'); if(!cd) return;\n      if(diff>0){ var h=Math.floor(diff/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000); cd.textContent=h>0?'In '+h+'h '+m+'m':m>0?'In '+m+'m '+s+'s':'Starting!'; if(badge){badge.textContent='Upcoming';badge.className='badge upcoming';} card.classList.remove('is-live'); }\n      else if(diff>-6300000){ cd.textContent=''; if(badge){badge.textContent='🔴 LIVE';badge.className='badge live';} card.classList.add('is-live'); }\n      else { cd.textContent=''; if(badge){badge.textContent='Ended';badge.className='badge ended';} card.classList.remove('is-live'); }\n    });\n  }\n  tick(); setInterval(tick,1000);\n})();\n<\/script>`; }
 function initPreviewRuntime(container){ function tick(){ container.querySelectorAll('.match-card[data-kickoff]').forEach(function(card){ var ko=card.getAttribute('data-kickoff'); if(!ko) return; var diff=new Date(ko)-Date.now(); var cd=card.querySelector('.cd'),badge=card.querySelector('.badge'); if(!cd) return; if(diff>0){ var h=Math.floor(diff/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000); cd.textContent=h>0?'In '+h+'h '+m+'m':m>0?'In '+m+'m '+s+'s':'Starting!'; if(badge){badge.textContent='Upcoming';badge.className='badge upcoming';} card.classList.remove('is-live'); } else if(diff>-6300000){ cd.textContent=''; if(badge){badge.textContent='🔴 LIVE';badge.className='badge live';} card.classList.add('is-live'); } else { cd.textContent=''; if(badge){badge.textContent='Ended';badge.className='badge ended';} card.classList.remove('is-live'); } }); } tick(); setInterval(tick,1000); }
-function getCardCSS(){ return `/* Sports 803 Match Cards v3 */\n.s803w{font-family:'Barlow',sans-serif;width:100%;box-sizing:border-box}\n.match-card{width:100%;background:#111;border:1px solid #222;border-radius:12px;overflow:hidden;transition:border-color .2s;margin-bottom:8px;box-sizing:border-box}\n.match-card:last-child{margin-bottom:0}\n.match-card:hover{border-color:#e53935}\n.match-card.is-live{border-color:rgba(229,57,53,.5);box-shadow:0 0 0 1px rgba(229,57,53,.12)}\n.match-card>a{text-decoration:none;color:#fff;display:block}\n.match-card>a:hover{background:rgba(255,255,255,.02)}\n.match-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}\n.match-card .team{display:flex;flex-direction:column;align-items:center;gap:6px;width:90px;text-align:center}\n.match-card .tlogo{width:54px;height:54px;object-fit:contain;border-radius:50%;background:#1a1a1a;padding:4px}\n.match-card .tlogo-fb{width:54px;height:54px;border-radius:50%;background:#1a1a1a;display:none;align-items:center;justify-content:center;font-size:22px}\n.match-card .tname{font-size:11px;color:#ccc;line-height:1.3;max-width:90px}\n.match-card .mc{flex:1;text-align:center;padding:0 8px}\n.match-card .score{font-size:22px;font-weight:800;color:#fff;letter-spacing:2px}\n.match-card .badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;letter-spacing:.5px}\n.match-card .badge.upcoming{background:#1a2a1a;color:#4caf50;border:1px solid #2e5c2e}\n.match-card .badge.live{background:#e53935;color:#fff;animation:s803p 1.5s infinite}\n.match-card .badge.ended{background:#1e1e1e;color:#666;border:1px solid #333}\n.match-card .cd{font-size:10px;color:#666;margin-top:4px;min-height:14px}\n.match-meta{display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid #1c1c1c;align-items:center}\n.match-card .meta-tag{font-size:10px;color:#777;background:#1a1a1a;padding:3px 8px;border-radius:6px}\n.match-card .meta-tag:first-child{color:#e53935;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2)}\n.match-card .watch-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);color:#ef9a9a;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-decoration:none;letter-spacing:.3px;font-family:'Barlow Condensed',sans-serif;transition:background .15s}\n.match-card .watch-btn:hover{background:rgba(229,57,53,.25);color:#fff}\n@keyframes s803p{0%,100%{opacity:1}50%{opacity:.6}}`; }
-async function copyEl(id,btn,lbl){ try{ await navigator.clipboard.writeText(document.getElementById(id).textContent); btn.classList.add('copied'); btn.textContent='✓ Copied!'; setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent=lbl; },2200); } catch{ setStatus('Copy failed — select text manually','err'); } }
+function getCardCSS(){ return `/* Sports 803 Match Cards */\n.s803w{font-family:'Barlow',sans-serif;width:100%;box-sizing:border-box}\n.match-card{width:100%;background:#111;border:1px solid #222;border-radius:12px;overflow:hidden;transition:border-color .2s;margin-bottom:8px;box-sizing:border-box}\n.match-card:last-child{margin-bottom:0}\n.match-card:hover{border-color:#e53935}\n.match-card.is-live{border-color:rgba(229,57,53,.5);box-shadow:0 0 0 1px rgba(229,57,53,.12)}\n.match-card>a{text-decoration:none;color:#fff;display:block}\n.match-card>a:hover{background:rgba(255,255,255,.02)}\n.match-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}\n.match-card .team{display:flex;flex-direction:column;align-items:center;gap:6px;width:90px;text-align:center}\n.match-card .tlogo{width:54px;height:54px;object-fit:contain;border-radius:50%;background:#1a1a1a;padding:4px}\n.match-card .tlogo-fb{width:54px;height:54px;border-radius:50%;background:#1a1a1a;display:none;align-items:center;justify-content:center;font-size:22px}\n.match-card .tname{font-size:11px;color:#ccc;line-height:1.3;max-width:90px}\n.match-card .mc{flex:1;text-align:center;padding:0 8px}\n.match-card .score{font-size:22px;font-weight:800;color:#fff;letter-spacing:2px}\n.match-card .badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;letter-spacing:.5px}\n.match-card .badge.upcoming{background:#1a2a1a;color:#4caf50;border:1px solid #2e5c2e}\n.match-card .badge.live{background:#e53935;color:#fff;animation:s803p 1.5s infinite}\n.match-card .badge.ended{background:#1e1e1e;color:#666;border:1px solid #333}\n.match-card .cd{font-size:10px;color:#666;margin-top:4px;min-height:14px}\n.match-meta{display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid #1c1c1c;align-items:center}\n.match-card .meta-tag{font-size:10px;color:#777;background:#1a1a1a;padding:3px 8px;border-radius:6px}\n.match-card .meta-tag:first-child{color:#e53935;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2)}\n.match-card .watch-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);color:#ef9a9a;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-decoration:none;letter-spacing:.3px;font-family:'Barlow Condensed',sans-serif;transition:background .15s}\n.match-card .watch-btn:hover{background:rgba(229,57,53,.25);color:#fff}\n@keyframes s803p{0%,100%{opacity:1}50%{opacity:.6}}`; }
+async function copyEl(id,btn,lbl){ try{ await navigator.clipboard.writeText(document.getElementById(id).textContent); btn.classList.add('copied'); btn.textContent='✓ Copied'; setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent=lbl; },2200); } catch{ setStatus('Copy failed — select the text manually','err'); } }
 
+// ═══════════════════════════════════════════
+// WIRING
+// ═══════════════════════════════════════════
 document.querySelectorAll('.out-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.out-tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.out-panel').forEach(p=>p.classList.remove('active')); tab.classList.add('active'); document.getElementById('tab-'+tab.dataset.tab).classList.add('active'); }); });
 document.querySelectorAll('.date-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.date-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); activeOffset=parseInt(tab.dataset.offset); document.getElementById('customDate').value=''; }); });
 document.querySelectorAll('.sport-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.sport-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); activeSport=tab.dataset.sport; activeLeague='all'; buildLeagueFilter(); if(allMatches.length) renderEvents(); }); });
@@ -1057,9 +1222,14 @@ document.querySelectorAll('.sport-tab').forEach(tab=>{ tab.addEventListener('cli
 const savedBase=localStorage.getItem('s803_blogbase'); if(savedBase) document.getElementById('blogBase').value=savedBase;
 document.getElementById('blogBase').addEventListener('input',e=>localStorage.setItem('s803_blogbase',e.target.value));
 const savedFb=localStorage.getItem('s803_fburl'); if(savedFb) document.getElementById('fbUrl').value=savedFb;
-document.getElementById('fbUrl').addEventListener('change',e=>{ localStorage.setItem('s803_fburl',e.target.value); allChannels=[]; initFirebase(); });
+document.getElementById('fbUrl').addEventListener('change',e=>{ localStorage.setItem('s803_fburl',e.target.value); allChannels=[]; publishedEvents={}; initFirebase(); });
+const savedSite=localStorage.getItem('s803_siteid'); if(savedSite) document.getElementById('siteId').value=savedSite;
+document.getElementById('siteId').addEventListener('change',e=>{ localStorage.setItem('s803_siteid',e.target.value); allChannels=[]; publishedEvents={}; initFirebase(); });
 
-buildLeagueFilter(); initFirebase();
+buildLeagueFilter();
+initFirebase();
+if(localStorage.getItem('s803_autosync')==='1') toggleAutoSync();
+setInterval(renderPublishedPanel,30000); // keeps live/ended labels honest without a network call
 </script>
 </body>
 </html>
